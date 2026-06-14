@@ -4,6 +4,8 @@ use serde::Deserialize;
 pub struct LoginForm {
     pub username: String,
     pub password: String,
+    pub captcha_token: String,
+    pub captcha_input: String,
 }
 
 #[derive(Debug, Deserialize)]

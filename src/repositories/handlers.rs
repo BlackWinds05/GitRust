@@ -19,13 +19,16 @@ use crate::state::AppState;
 pub struct RepoParams { pub owner: String, pub repo: String }
 
 #[derive(Deserialize)]
-pub struct TreeQuery { pub ref_name: Option<String> }
+pub struct TreeQuery { pub ref_name: Option<String>, pub path: Option<String> }
 
 #[derive(Deserialize)]
 pub struct CommitsQuery { pub ref_name: Option<String>, pub page: Option<u32> }
 
 #[derive(Deserialize)]
 pub struct CommitParams { pub owner: String, pub repo: String, pub sha: String }
+
+#[derive(Deserialize)]
+pub struct BlobParams { pub owner: String, pub repo: String, pub ref_name: String }
 
 pub async fn overview(
     State(state): State<Arc<AppState>>, session: Session,
@@ -68,11 +71,61 @@ pub async fn tree_view(
     let git_repo_obj = git_repo::open_bare(&repo_path)?;
     let default_branch = git_repo::default_branch(&git_repo_obj);
     let ref_name = query.ref_name.unwrap_or(default_branch);
-    let entries = tree::list_tree(&git_repo_obj, &ref_name, "").unwrap_or_default();
+    let current_path = query.path.unwrap_or_default();
+    let entries = tree::list_tree(&git_repo_obj, &ref_name, &current_path).unwrap_or_default();
     let branches = git_repo::branches(&git_repo_obj).unwrap_or_default();
     let html = state.templates.render("pages/repo/tree.jinja", context! {
         current_user, repo => repo_info, current_ref => ref_name,
-        entries, branches, path => "", sidebar_active => "files",
+        entries, branches, path => current_path, sidebar_active => "files",
+    }).await?;
+    Ok(Html(html))
+}
+
+pub async fn blob_view(
+    State(state): State<Arc<AppState>>, session: Session,
+    Path(params): Path<BlobParams>, Query(query): Query<TreeQuery>,
+) -> AppResult<Html<String>> {
+    let current_user = current_user_from_session(&session).await;
+    let (repository, _) = service::resolve_repo(&state.pool, &params.owner, &params.repo).await?;
+    let repo_info = service::get_repo_info(&state.pool, &repository).await?;
+    let repo_path = git_repo::repo_path(&state.config.data_dir, &repository.owner_id.to_string(), &repository.name);
+    let git_repo_obj = git_repo::open_bare(&repo_path)?;
+    let file_path = query.path.unwrap_or(params.ref_name.clone());
+    let content_bytes = crate::git_core::blob::read_blob(&git_repo_obj, &params.ref_name, &file_path).unwrap_or_default();
+    let is_bin = crate::git_core::blob::is_binary(&content_bytes);
+    let content = if is_bin { "[Binary file]".to_string() } else { String::from_utf8_lossy(&content_bytes).to_string() };
+    let language = crate::git_core::blob::detect_language(&file_path);
+    let file_size = content_bytes.len() as i64;
+    let html = state.templates.render("pages/repo/blob.jinja", context! {
+        current_user, repo => repo_info, current_ref => params.ref_name,
+        file_path, content, is_binary => is_bin,
+        language, file_size, sidebar_active => "files",
+    }).await?;
+    Ok(Html(html))
+}
+
+pub async fn graph(
+    State(state): State<Arc<AppState>>, session: Session,
+    Path(params): Path<RepoParams>,
+) -> AppResult<Html<String>> {
+    let current_user = current_user_from_session(&session).await;
+    let (repository, _) = service::resolve_repo(&state.pool, &params.owner, &params.repo).await?;
+    let repo_info = service::get_repo_info(&state.pool, &repository).await?;
+    let html = state.templates.render("pages/repo/graph.jinja", context! {
+        current_user, repo => repo_info, sidebar_active => "graph",
+    }).await?;
+    Ok(Html(html))
+}
+
+pub async fn stats(
+    State(state): State<Arc<AppState>>, session: Session,
+    Path(params): Path<RepoParams>,
+) -> AppResult<Html<String>> {
+    let current_user = current_user_from_session(&session).await;
+    let (repository, _) = service::resolve_repo(&state.pool, &params.owner, &params.repo).await?;
+    let repo_info = service::get_repo_info(&state.pool, &repository).await?;
+    let html = state.templates.render("pages/repo/stats.jinja", context! {
+        current_user, repo => repo_info, sidebar_active => "stats",
     }).await?;
     Ok(Html(html))
 }

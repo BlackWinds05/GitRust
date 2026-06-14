@@ -1,6 +1,6 @@
 use axum::{
     extract::{Path, State},
-    response::{Html, Redirect, IntoResponse},
+    response::{Html, IntoResponse, Redirect},
     Form,
 };
 use minijinja::context;
@@ -19,7 +19,12 @@ use crate::users::model::UserInfo;
 pub async fn login_form(
     State(state): State<Arc<AppState>>,
 ) -> AppResult<Html<String>> {
-    let html = state.templates.render("pages/auth/login.jinja", context! {}).await?;
+    let (token, answer, base64) = CaptchaService::generate();
+    AuthService::store_captcha(&state.pool, &token, &answer).await?;
+    let html = state.templates.render("pages/auth/login.jinja", context! {
+        captcha_token => token,
+        captcha_image => base64,
+    }).await?;
     Ok(Html(html))
 }
 
@@ -27,7 +32,19 @@ pub async fn login_submit(
     State(state): State<Arc<AppState>>,
     session: Session,
     Form(form): Form<LoginForm>,
-) -> AppResult<impl IntoResponse> {
+) -> AppResult<axum::response::Response> {
+    let valid = AuthService::verify_captcha(&state.pool, &form.captcha_token, &form.captcha_input).await?;
+    if !valid {
+        let (token, answer, base64) = CaptchaService::generate();
+        AuthService::store_captcha(&state.pool, &token, &answer).await?;
+        let html = state.templates.render("pages/auth/login.jinja", context! {
+            error => "Verification code is incorrect.",
+            captcha_token => token,
+            captcha_image => base64,
+        }).await?;
+        return Ok(Html(html).into_response());
+    }
+
     let user = AuthService::login(&state.pool, &form.username, &form.password).await?;
 
     let user_info: UserInfo = user.into();
@@ -39,7 +56,7 @@ pub async fn login_submit(
     session.insert("user", &user_json).await
         .map_err(|e| AppError::Internal(anyhow::anyhow!("Session error: {}", e)))?;
 
-    Ok(Redirect::to("/"))
+    Ok(Redirect::to("/").into_response())
 }
 
 pub async fn register_form(

@@ -11,7 +11,10 @@ pub fn repo_routes() -> Router<Arc<AppState>> {
         .route("/{owner}/{repo}/tree", get(handlers::tree_view))
         .route("/{owner}/{repo}/commits", get(handlers::commits))
         .route("/{owner}/{repo}/commit/{sha}", get(handlers::commit_detail))
+        .route("/{owner}/{repo}/blob/{ref_name}", get(handlers::blob_view))
         .route("/{owner}/{repo}/branches", get(handlers::branches))
+        .route("/{owner}/{repo}/-/graph", get(handlers::graph))
+        .route("/{owner}/{repo}/-/stats", get(handlers::stats))
         // Git Smart HTTP
         .route("/{owner}/{repo}/git/info/refs", get(git_http::info_refs))
         .route("/{owner}/{repo}/git/git-upload-pack", post(git_http::upload_pack))

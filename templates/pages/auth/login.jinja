@@ -19,6 +19,15 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" class="form-control" required>
             </div>
+            <div class="form-group">
+                <label>Verification</label>
+                <div class="captcha-row">
+                    <img id="captcha-img" src="{{ captcha_image }}" alt="Captcha" title="Click to refresh">
+                    <button type="button" id="captcha-refresh" class="btn btn-sm">Refresh</button>
+                </div>
+                <input type="text" name="captcha_input" class="form-control mt-2" placeholder="Enter the code above" required>
+                <input type="hidden" id="captcha-token" name="captcha_token" value="{{ captcha_token }}">
+            </div>
             <button type="submit" class="btn btn-primary" style="width:100%;">Sign In</button>
         </form>
         <div class="auth-footer">
