@@ -1,0 +1,18 @@
+{% if pagination and pagination.total_pages > 1 %}
+<div class="pagination">
+    {% if pagination.page > 1 %}
+        <a href="?page={{ pagination.page - 1 }}&amp;per_page={{ pagination.per_page }}">Prev</a>
+    {% else %}
+        <span class="disabled">Prev</span>
+    {% endif %}
+
+    <span class="current">{{ pagination.page }}</span>
+    <span class="text-small">/ {{ pagination.total_pages }}</span>
+
+    {% if pagination.page < pagination.total_pages %}
+        <a href="?page={{ pagination.page + 1 }}&amp;per_page={{ pagination.per_page }}">Next</a>
+    {% else %}
+        <span class="disabled">Next</span>
+    {% endif %}
+</div>
+{% endif %}

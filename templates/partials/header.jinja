@@ -1,0 +1,18 @@
+<header class="site-header">
+    <a href="/" class="logo">GitRust</a>
+    <nav>
+        <a href="/projects">Projects</a>
+        <a href="/groups/new">Groups</a>
+    </nav>
+    <div class="header-right">
+        {% if current_user %}
+            <a href="/{{ current_user.username }}" class="btn btn-sm">{{ current_user.display_name }}</a>
+            <form action="/auth/logout" method="post" style="display:inline">
+                <button type="submit" class="btn btn-sm">Logout</button>
+            </form>
+        {% else %}
+            <a href="/auth/login" class="btn btn-sm">Sign In</a>
+            <a href="/auth/register" class="btn btn-primary btn-sm">Sign Up</a>
+        {% endif %}
+    </div>
+</header>

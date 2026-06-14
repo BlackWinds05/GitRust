@@ -1,0 +1,7 @@
+{% if flash_message %}
+<div class="container">
+    <div class="flash-message flash-{{ flash_message.kind }}">
+        {{ flash_message.message }}
+    </div>
+</div>
+{% endif %}

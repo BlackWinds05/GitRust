@@ -1,0 +1,15 @@
+{% extends "base.jinja" %}
+{% block body %}
+    {% include "partials/header.jinja" %}
+    <main>
+        {% if flash_message %}
+        <div class="container">
+            <div class="flash-message flash-{{ flash_message.kind }}">
+                {{ flash_message.message }}
+            </div>
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+    {% include "partials/footer.jinja" %}
+{% endblock %}

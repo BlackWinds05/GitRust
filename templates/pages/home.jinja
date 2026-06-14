@@ -1,0 +1,38 @@
+{% extends "layout.jinja" %}
+{% block title %}GitRust — Code Hosting Platform{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:48px;text-align:center;">
+    <h1 style="font-size:48px;margin-bottom:16px;">GitRust</h1>
+    <p style="font-size:20px;color:var(--color-text-secondary);margin-bottom:32px;">
+        A high-performance code hosting platform built in Rust.
+    </p>
+    {% if not current_user %}
+    <div>
+        <a href="/auth/register" class="btn btn-primary" style="font-size:16px;padding:10px 32px;">Get Started — Free</a>
+    </div>
+    <p style="margin-top:12px;font-size:14px;">
+        Already have an account? <a href="/auth/login">Sign in</a>
+    </p>
+    {% else %}
+    <div>
+        <a href="/projects" class="btn btn-primary" style="font-size:16px;padding:10px 32px;">My Projects</a>
+        <a href="/projects/new" class="btn" style="font-size:16px;padding:10px 32px;">New Project</a>
+    </div>
+    {% endif %}
+
+    <div style="display:flex;justify-content:center;gap:48px;margin-top:64px;text-align:left;">
+        <div style="max-width:280px;">
+            <h3 style="margin-bottom:8px;">Git Powered</h3>
+            <p style="color:var(--color-text-secondary);font-size:14px;">Full Git support with branches, commits, and merge requests. Clone via HTTPS or SSH.</p>
+        </div>
+        <div style="max-width:280px;">
+            <h3 style="margin-bottom:8px;">Collaboration</h3>
+            <p style="color:var(--color-text-secondary);font-size:14px;">Project groups, invite codes, issues, milestones, and merge requests for seamless teamwork.</p>
+        </div>
+        <div style="max-width:280px;">
+            <h3 style="margin-bottom:8px;">Fast &amp; Safe</h3>
+            <p style="color:var(--color-text-secondary);font-size:14px;">Built with Rust for maximum performance and memory safety.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "layout.jinja" %}
+{% block title %}Sign Up — GitRust{% endblock %}
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <h1>Create your account</h1>
+        <form method="post" action="/auth/register">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-control" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="display_name">Display name</label>
+                <input type="text" id="display_name" name="display_name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required minlength="8">
+            </div>
+            <div class="form-group">
+                <label for="password_confirm">Confirm password</label>
+                <input type="password" id="password_confirm" name="password_confirm" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Verification</label>
+                <div class="captcha-row">
+                    <img id="captcha-img" src="data:image/png;base64,{{ captcha_image }}" alt="Captcha" title="Click to refresh">
+                    <button type="button" id="captcha-refresh" class="btn btn-sm">Refresh</button>
+                </div>
+                <input type="text" name="captcha_input" class="form-control mt-2" placeholder="Enter the code above" required>
+                <input type="hidden" id="captcha-token" name="captcha_token" value="{{ captcha_token }}">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Create Account</button>
+        </form>
+        <div class="auth-footer">
+            Already have an account? <a href="/auth/login">Sign in</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
