@@ -20,6 +20,15 @@ pub struct GitParams { pub owner: String, pub repo: String }
 #[derive(Deserialize)]
 pub struct ServiceQuery { pub service: String }
 
+fn git_unauthorized() -> Response {
+    Response::builder()
+        .status(StatusCode::UNAUTHORIZED)
+        .header("WWW-Authenticate", "Basic realm=\"GitRust\"")
+        .header("Content-Type", "text/plain")
+        .body(Body::from("Authentication required\n"))
+        .unwrap()
+}
+
 async fn check_git_auth(
     state: &AppState,
     session: &Session,
@@ -87,7 +96,7 @@ pub async fn info_refs(
 ) -> AppResult<Response> {
     let (repository, _) = service::resolve_repo(&state.pool, &params.owner, &params.repo).await?;
     if repository.is_private && !check_git_auth(&state, &session, &headers).await {
-        return Err(crate::error::AppError::Unauthorized);
+        return Ok(git_unauthorized());
     }
 
     let repo_path = crate::git_core::repo::repo_path(
@@ -136,7 +145,7 @@ pub async fn upload_pack(
 ) -> AppResult<Response> {
     let (repository, _) = service::resolve_repo(&state.pool, &params.owner, &params.repo).await?;
     if repository.is_private && !check_git_auth(&state, &session, &headers).await {
-        return Err(crate::error::AppError::Unauthorized);
+        return Ok(git_unauthorized());
     }
 
     let repo_path = crate::git_core::repo::repo_path(
@@ -178,7 +187,7 @@ pub async fn receive_pack(
     body: axum::body::Bytes,
 ) -> AppResult<Response> {
     if !check_git_auth(&state, &session, &headers).await {
-        return Err(crate::error::AppError::Unauthorized);
+        return Ok(git_unauthorized());
     }
     let (repository, _) = service::resolve_repo(&state.pool, &params.owner, &params.repo).await?;
 
