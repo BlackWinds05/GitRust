@@ -49,9 +49,10 @@ pub async fn overview(
             }
         });
     let commit_count = commit::get_commit_count(&git_repo_obj, &default_branch).unwrap_or(0);
+    let clone_url = format!("{}/{}/{}/git/", state.config.base_url, repo_info.owner_name, repo_info.name);
     let html = state.templates.render("pages/repo/overview.jinja", context! {
         current_user, repo => repo_info, default_branch, entries,
-        branches, readme_html, commit_count, sidebar_active => "files",
+        branches, readme_html, commit_count, clone_url, sidebar_active => "files",
     }).await?;
     Ok(Html(html))
 }

@@ -10,7 +10,10 @@
             {% endfor %}
         </select>
     </div>
-    <div>
+    <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;font-family:var(--font-mono);color:var(--color-text-secondary);background:var(--color-bg-tertiary);padding:4px 10px;border-radius:6px;border:1px solid var(--color-border);">
+            git clone {{ clone_url }}
+        </span>
         <a href="/{{ repo.owner_name }}/{{ repo.name }}/commits" class="btn btn-sm">
             {{ commit_count }} commits
         </a>
@@ -46,7 +49,10 @@
 {% else %}
 <div class="empty-state">
     <h3>Empty repository</h3>
-    <p>This repository is empty. Clone it and push your first commit.</p>
+    <p style="margin-bottom:16px;">Clone this repository and push your first commit:</p>
+    <code style="background:var(--color-bg-tertiary);padding:8px 16px;border-radius:6px;font-family:var(--font-mono);font-size:13px;border:1px solid var(--color-border);user-select:all;">
+        git clone {{ clone_url }}
+    </code>
 </div>
 {% endif %}
 
