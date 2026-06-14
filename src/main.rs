@@ -9,7 +9,14 @@ use tower_sessions::{MemoryStore, SessionManagerLayer};
 use tracing_subscriber::EnvFilter;
 
 use gitrust::groups::routes::group_routes;
+use gitrust::issues::routes::issue_routes;
+use gitrust::merge_requests::routes::mr_routes;
+use gitrust::milestones::routes::milestone_routes;
+use gitrust::wiki::routes::wiki_routes;
+use gitrust::members::routes::member_routes;
+use gitrust::labels::routes::label_routes;
 use gitrust::projects::routes::project_routes;
+use gitrust::repositories::routes::repo_routes;
 use gitrust::users::routes::{profile_routes, user_routes};
 
 async fn health() -> &'static str {
@@ -43,6 +50,13 @@ async fn main() -> Result<(), anyhow::Error> {
         .merge(user_routes())
         .merge(group_routes())
         .merge(project_routes())
+        .merge(repo_routes())
+        .merge(issue_routes())
+        .merge(mr_routes())
+        .merge(milestone_routes())
+        .merge(wiki_routes())
+        .merge(member_routes())
+        .merge(label_routes())
         .merge(profile_routes())
         .nest_service("/static", ServeDir::new("static"))
         .layer(SessionManagerLayer::new(session_store))
