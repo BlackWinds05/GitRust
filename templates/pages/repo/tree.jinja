@@ -1,7 +1,19 @@
 {% extends "pages/repo/layout.jinja" %}
-{% block title %}{{ repo.name }} at {{ current_ref }} — GitRust{% endblock %}
+{% block title %}{{ repo.name }}{% if path %} / {{ path }}{% endif %} — GitRust{% endblock %}
 {% block repo_content %}
-<h2>Files at {{ current_ref }}</h2>
+
+{% if breadcrumbs | length > 0 %}
+<div style="font-size:14px;margin-bottom:16px;padding:8px 0;border-bottom:1px solid var(--color-border);">
+    <a href="/{{ repo.owner_name }}/{{ repo.name }}/tree?ref_name={{ current_ref }}">{{ repo.name }}</a>
+    {% for crumb in breadcrumbs %}
+        <span style="color:var(--color-text-secondary);"> / </span>
+        <a href="/{{ repo.owner_name }}/{{ repo.name }}/tree?ref_name={{ current_ref }}&path={{ crumb.1 }}">{{ crumb.0 }}</a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<h2>{% if path %}{{ path }}{% else %}Files at {{ current_ref }}{% endif %}</h2>
+
 {% if entries | length > 0 %}
 <table class="file-table">
     <thead><tr><th>Name</th><th>Size</th></tr></thead>
@@ -11,7 +23,11 @@
         <td>
             <span class="file-icon">{% if entry.entry_type == "directory" %}&#128193;{% else %}&#128196;{% endif %}</span>
             <span class="{% if entry.entry_type == 'directory' %}file-dir{% else %}file-name{% endif %}">
-                {{ entry.name }}
+                {% if entry.entry_type == "directory" %}
+                <a href="/{{ repo.owner_name }}/{{ repo.name }}/tree?ref_name={{ current_ref }}&path={{ entry.path }}">{{ entry.name }}</a>
+                {% else %}
+                <a href="/{{ repo.owner_name }}/{{ repo.name }}/blob/{{ current_ref }}?path={{ entry.path }}">{{ entry.name }}</a>
+                {% endif %}
             </span>
         </td>
         <td style="font-size:13px;color:var(--color-text-secondary);">

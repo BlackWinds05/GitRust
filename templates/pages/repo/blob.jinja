@@ -1,6 +1,17 @@
 {% extends "pages/repo/layout.jinja" %}
 {% block title %}{{ file_path }} at {{ current_ref }} — {{ repo.name }}{% endblock %}
 {% block repo_content %}
+
+{% if breadcrumbs | length > 0 %}
+<div style="font-size:14px;margin-bottom:16px;padding:8px 0;border-bottom:1px solid var(--color-border);">
+    <a href="/{{ repo.owner_name }}/{{ repo.name }}/tree?ref_name={{ current_ref }}">{{ repo.name }}</a>
+    {% for crumb in breadcrumbs %}
+        <span style="color:var(--color-text-secondary);"> / </span>
+        <a href="/{{ repo.owner_name }}/{{ repo.name }}/tree?ref_name={{ current_ref }}&path={{ crumb.1 }}">{{ crumb.0 }}</a>
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="blob-header">
     <span class="file-path">{{ file_path }}</span>
     <span class="text-small">{{ file_size }} bytes | {% if language %}{{ language }}{% else %}plain text{% endif %}</span>

@@ -74,9 +74,23 @@ pub async fn tree_view(
     let current_path = query.path.unwrap_or_default();
     let entries = tree::list_tree(&git_repo_obj, &ref_name, &current_path).unwrap_or_default();
     let branches = git_repo::branches(&git_repo_obj).unwrap_or_default();
+
+    let mut breadcrumbs: Vec<(String, String)> = Vec::new();
+    if !current_path.is_empty() {
+        let mut accum = String::new();
+        for part in current_path.split('/') {
+            if !part.is_empty() {
+                if !accum.is_empty() { accum.push('/'); }
+                accum.push_str(part);
+                breadcrumbs.push((part.to_string(), accum.clone()));
+            }
+        }
+    }
+
     let html = state.templates.render("pages/repo/tree.jinja", context! {
         current_user, repo => repo_info, current_ref => ref_name,
-        entries, branches, path => current_path, sidebar_active => "files",
+        entries, branches, path => current_path, breadcrumbs,
+        sidebar_active => "files",
     }).await?;
     Ok(Html(html))
 }
@@ -96,10 +110,23 @@ pub async fn blob_view(
     let content = if is_bin { "[Binary file]".to_string() } else { String::from_utf8_lossy(&content_bytes).to_string() };
     let language = crate::git_core::blob::detect_language(&file_path);
     let file_size = content_bytes.len() as i64;
+
+    let mut breadcrumbs: Vec<(String, String)> = Vec::new();
+    if !file_path.is_empty() {
+        let mut accum = String::new();
+        for part in file_path.split('/') {
+            if !part.is_empty() {
+                if !accum.is_empty() { accum.push('/'); }
+                accum.push_str(part);
+                breadcrumbs.push((part.to_string(), accum.clone()));
+            }
+        }
+    }
+
     let html = state.templates.render("pages/repo/blob.jinja", context! {
         current_user, repo => repo_info, current_ref => params.ref_name,
         file_path, content, is_binary => is_bin,
-        language, file_size, sidebar_active => "files",
+        language, file_size, breadcrumbs, sidebar_active => "files",
     }).await?;
     Ok(Html(html))
 }
