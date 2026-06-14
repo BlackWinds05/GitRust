@@ -1,7 +1,7 @@
 use axum::{
     body::Body,
     extract::{Path, Query, State},
-    http::{HeaderMap, StatusCode},
+    http::StatusCode,
     response::Response,
 };
 use serde::Deserialize;
@@ -37,28 +37,30 @@ pub async fn info_refs(
         &repository.name,
     );
 
-    let git_cmd = match query.service.as_str() {
-        "git-upload-pack" => "git-upload-pack",
-        "git-receive-pack" => "git-receive-pack",
+    let git_subcmd = match query.service.as_str() {
+        "git-upload-pack" => "upload-pack",
+        "git-receive-pack" => "receive-pack",
         _ => return Err(crate::error::AppError::BadRequest("Invalid service.".into())),
     };
 
     let output = std::process::Command::new("git")
-        .arg(git_cmd.replace("git-", ""))
+        .arg(git_subcmd)
         .arg("--stateless-rpc")
         .arg("--advertise-refs")
         .arg(&repo_path)
         .output()
-        .unwrap_or_else(|_| std::process::Output { status: std::process::ExitStatus::default(), stdout: vec![], stderr: vec![] });
+        .unwrap_or_else(|_| std::process::Output {
+            status: std::process::ExitStatus::default(),
+            stdout: vec![],
+            stderr: vec![],
+        });
 
-    let content_type = format!("application/x-{}-advertisement", query.service);
+    // Git pkt-line protocol: service header + flush packet + ref advertisement
     let pkt = format!("# service={}\n", query.service);
     let pkt_len = format!("{:04x}", pkt.len() + 4);
-    let body_data = format!("{}{}{}", pkt_len, pkt, String::from_utf8_lossy(&output.stdout));
+    let body_data = format!("{}{}0000{}", pkt_len, pkt, String::from_utf8_lossy(&output.stdout));
 
-    let mut headers = HeaderMap::new();
-    headers.insert("Content-Type", content_type.parse().unwrap());
-    headers.insert("Cache-Control", "no-cache".parse().unwrap());
+    let content_type = format!("application/x-{}-advertisement", query.service);
 
     Ok(Response::builder()
         .status(StatusCode::OK)
@@ -93,7 +95,7 @@ pub async fn upload_pack(
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .spawn()
-        .map_err(|e| crate::error::AppError::Internal(anyhow::anyhow!("Failed: {}", e)))?;
+        .map_err(|e| crate::error::AppError::Internal(anyhow::anyhow!("git upload-pack failed: {}", e)))?;
 
     use std::io::Write;
     if let Some(mut stdin) = child.stdin.take() {
@@ -101,7 +103,7 @@ pub async fn upload_pack(
     }
 
     let output = child.wait_with_output()
-        .map_err(|e| crate::error::AppError::Internal(anyhow::anyhow!("Failed: {}", e)))?;
+        .map_err(|e| crate::error::AppError::Internal(anyhow::anyhow!("git upload-pack failed: {}", e)))?;
 
     Ok(Response::builder()
         .status(StatusCode::OK)
@@ -134,7 +136,7 @@ pub async fn receive_pack(
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .spawn()
-        .map_err(|e| crate::error::AppError::Internal(anyhow::anyhow!("Failed: {}", e)))?;
+        .map_err(|e| crate::error::AppError::Internal(anyhow::anyhow!("git receive-pack failed: {}", e)))?;
 
     use std::io::Write;
     if let Some(mut stdin) = child.stdin.take() {
@@ -142,7 +144,7 @@ pub async fn receive_pack(
     }
 
     let output = child.wait_with_output()
-        .map_err(|e| crate::error::AppError::Internal(anyhow::anyhow!("Failed: {}", e)))?;
+        .map_err(|e| crate::error::AppError::Internal(anyhow::anyhow!("git receive-pack failed: {}", e)))?;
 
     Ok(Response::builder()
         .status(StatusCode::OK)
