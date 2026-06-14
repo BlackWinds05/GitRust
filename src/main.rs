@@ -25,11 +25,12 @@ async fn health() -> &'static str {
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
+    dotenvy::dotenv().ok();
+
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
+        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")))
         .init();
 
-    dotenvy::dotenv().ok();
     let config = Config::from_env()?;
 
     tracing::info!("Connecting to database...");
