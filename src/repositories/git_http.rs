@@ -25,20 +25,21 @@ async fn check_git_auth(
     session: &Session,
     headers: &HeaderMap,
 ) -> bool {
+    tracing::info!("Git auth: checking credentials...");
     if let Some(user) = current_user_from_session(session).await {
-        tracing::debug!("Git auth: session user={}", user.username);
+        tracing::info!("Git auth: session user={}", user.username);
         return true;
     }
     if let Some(auth) = headers.get("Authorization") {
         if let Ok(auth_str) = auth.to_str() {
-            tracing::debug!("Git auth: Authorization header present");
+            tracing::info!("Git auth:Authorization header present");
             if auth_str.starts_with("Basic ") {
                 let encoded = auth_str.trim_start_matches("Basic ").trim();
                 match base64_decode(encoded) {
                     Ok(decoded) => {
-                        tracing::debug!("Git auth: decoded Basic creds");
+                        tracing::info!("Git auth:decoded Basic creds");
                         if let Some((username, password)) = decoded.split_once(':') {
-                            tracing::debug!("Git auth: username={}", username);
+                            tracing::info!("Git auth:username={}", username);
                             match User::find_by_username(&state.pool, username).await {
                                 Ok(Some(user)) => {
                                     use argon2::{
@@ -50,23 +51,23 @@ async fn check_git_auth(
                                             let ok = Argon2::default()
                                                 .verify_password(password.as_bytes(), &parsed)
                                                 .is_ok();
-                                            tracing::debug!("Git auth: password match={}", ok);
+                                            tracing::info!("Git auth:password match={}", ok);
                                             return ok;
                                         }
-                                        Err(e) => tracing::debug!("Git auth: hash parse error={}", e),
+                                        Err(e) => tracing::info!("Git auth:hash parse error={}", e),
                                     }
                                 }
-                                Ok(None) => tracing::debug!("Git auth: user not found"),
-                                Err(e) => tracing::debug!("Git auth: db error={}", e),
+                                Ok(None) => tracing::info!("Git auth:user not found"),
+                                Err(e) => tracing::info!("Git auth:db error={}", e),
                             }
                         }
                     }
-                    Err(_) => tracing::debug!("Git auth: base64 decode failed"),
+                    Err(_) => tracing::info!("Git auth:base64 decode failed"),
                 }
             }
         }
     } else {
-        tracing::debug!("Git auth: no Authorization header");
+        tracing::info!("Git auth:no Authorization header");
     }
     false
 }
