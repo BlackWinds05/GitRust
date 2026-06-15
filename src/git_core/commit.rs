@@ -97,7 +97,7 @@ pub fn get_commit_count(repo: &Repository, rev: &str) -> Result<u64, git2::Error
     Ok(revwalk.count() as u64)
 }
 
-fn format_time(dt: DateTime<Utc>) -> String {
+pub fn format_time(dt: DateTime<Utc>) -> String {
     let now = Utc::now();
     let diff = now - dt;
     if diff.num_hours() < 24 { format!("{} hours ago", diff.num_hours()) }

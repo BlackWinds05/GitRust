@@ -138,10 +138,24 @@ pub async fn graph(
     let current_user = current_user_from_session(&session).await;
     let (repository, _) = service::resolve_repo(&state.pool, &params.owner, &params.repo).await?;
     let repo_info = service::get_repo_info(&state.pool, &repository).await?;
+    let repo_path = git_repo::repo_path(&state.config.data_dir, &repository.owner_id.to_string(), &repository.name);
+    let git_repo_obj = git_repo::open_bare(&repo_path)?;
+    let branches = git_repo::branches(&git_repo_obj).unwrap_or_default();
     let html = state.templates.render("pages/repo/graph.jinja", context! {
-        current_user, repo => repo_info, sidebar_active => "graph",
+        current_user, repo => repo_info, sidebar_active => "graph", branches,
     }).await?;
     Ok(Html(html))
+}
+
+pub async fn graph_data(
+    State(state): State<Arc<AppState>>,
+    Path(params): Path<RepoParams>,
+) -> AppResult<axum::response::Json<serde_json::Value>> {
+    let (repository, _) = service::resolve_repo(&state.pool, &params.owner, &params.repo).await?;
+    let repo_path = git_repo::repo_path(&state.config.data_dir, &repository.owner_id.to_string(), &repository.name);
+    let git_repo_obj = git_repo::open_bare(&repo_path)?;
+    let data = crate::git_core::graph::build_graph(&git_repo_obj)?;
+    Ok(axum::response::Json(serde_json::to_value(&data).unwrap_or_default()))
 }
 
 pub async fn stats(
@@ -151,8 +165,12 @@ pub async fn stats(
     let current_user = current_user_from_session(&session).await;
     let (repository, _) = service::resolve_repo(&state.pool, &params.owner, &params.repo).await?;
     let repo_info = service::get_repo_info(&state.pool, &repository).await?;
+    let repo_path = git_repo::repo_path(&state.config.data_dir, &repository.owner_id.to_string(), &repository.name);
+    let git_repo_obj = git_repo::open_bare(&repo_path)?;
+    let stats = crate::git_core::stats::compute_stats(&git_repo_obj).unwrap_or_default();
     let html = state.templates.render("pages/repo/stats.jinja", context! {
         current_user, repo => repo_info, sidebar_active => "stats",
+        stats,
     }).await?;
     Ok(Html(html))
 }

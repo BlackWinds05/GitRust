@@ -233,8 +233,126 @@ textarea.form-control { min-height: 100px; resize: vertical; }
 .wiki-content pre { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 6px; padding: 16px; overflow-x: auto; }
 .wiki-content code { font-family: var(--font-mono); font-size: 85%; }
 
-/* Stats */
-.stats-chart { background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+/* ===== Statistics ===== */
+.stats-summary {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;
+}
+.stats-card {
+    background: var(--color-bg-secondary); border: 1px solid var(--color-border);
+    border-radius: 8px; padding: 20px 24px; position: relative; overflow: hidden;
+    transition: border-color .2s;
+}
+.stats-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.stats-card:nth-child(1)::before { background: #58a6ff; }
+.stats-card:nth-child(2)::before { background: #3fb950; }
+.stats-card:nth-child(3)::before { background: #d29922; }
+.stats-card:hover { border-color: #58a6ff; }
+.stats-card-value { font-size: 28px; font-weight: 700; color: var(--color-text-primary); line-height: 1.2; }
+.stats-card-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }
+
+.stats-section {
+    background: var(--color-bg-secondary); border: 1px solid var(--color-border);
+    border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+}
+.stats-section-title {
+    font-size: 14px; font-weight: 600; color: var(--color-text-primary);
+    margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--color-border);
+}
+
+/* Commit activity — CSS bar chart */
+.stats-bar-wrap {
+    display: flex; align-items: flex-end; gap: 3px; height: 150px; padding: 0 0 22px;
+}
+.stats-bar-col { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; position: relative; }
+.stats-bar-fill {
+    width: 100%; border-radius: 3px 3px 0 0; min-height: 3px;
+    background: linear-gradient(180deg, #58a6ff 0%, #1f6feb 100%);
+    cursor: pointer; transition: opacity .15s;
+}
+.stats-bar-fill:hover { opacity: .6; }
+.stats-bar-label {
+    position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; color: var(--color-text-secondary); white-space: nowrap;
+}
+
+/* Contributors & Languages */
+.stats-contrib-list { }
+.stats-contrib-row {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 13px;
+}
+.stats-contrib-name {
+    width: 150px; flex-shrink: 0; text-align: right;
+    color: var(--color-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-weight: 500;
+}
+.stats-contrib-name.lang {
+    width: 70px; font-family: var(--font-mono); font-size: 12px; color: var(--color-text-link);
+}
+.stats-contrib-bar {
+    flex: 1; height: 14px; background: var(--color-bg); border-radius: 7px; overflow: hidden;
+}
+.stats-contrib-fill {
+    height: 100%; border-radius: 7px; display: block;
+    background: linear-gradient(90deg, #1f6feb 0%, #58a6ff 100%);
+}
+.stats-contrib-fill.lang-fill { background: linear-gradient(90deg, #238636 0%, #3fb950 100%); }
+.stats-contrib-count {
+    width: 70px; flex-shrink: 0; font-size: 12px; color: var(--color-text-secondary); font-variant-numeric: tabular-nums;
+}
+
+/* ===== Network Graph ===== */
+.graph-wrapper { min-height: 200px; }
+.graph-loading { text-align: center; padding: 48px 24px; color: var(--color-text-secondary); }
+.graph-box {
+    display: flex; border: 1px solid var(--color-border); border-radius: 8px;
+    background: var(--color-bg); overflow: hidden;
+}
+.graph-svg {
+    flex-shrink: 0; display: block; padding: 0;
+    border-right: 1px solid var(--color-border);
+}
+.graph-svg circle { cursor: pointer; transition: r .15s, filter .15s; }
+.graph-svg circle:hover { filter: brightness(1.4); }
+.graph-svg path { transition: stroke .15s; }
+
+.graph-commits { flex: 1; min-width: 0; overflow: hidden; }
+.graph-commit-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 12px; border-bottom: 1px solid var(--color-border);
+    transition: background .1s;
+}
+.graph-commit-row:hover { background: var(--color-bg-secondary); }
+.graph-commit-row:last-child { border-bottom: none; }
+
+.graph-commit-msg {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center; gap: 8px;
+}
+.graph-commit-msg a {
+    display: block; max-width: 380px;
+    font-size: 13px; font-weight: 500; color: var(--color-text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-decoration: none;
+}
+.graph-commit-msg a:hover { color: var(--color-text-link); }
+
+.graph-branch-badge {
+    display: inline-flex; align-items: center; flex-shrink: 0;
+    padding: 1px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;
+    white-space: nowrap;
+}
+
+.graph-commit-meta {
+    flex-shrink: 0; font-size: 12px; color: var(--color-text-secondary);
+    white-space: nowrap; margin-left: auto;
+}
+.graph-commit-sha {
+    flex-shrink: 0; font-family: var(--font-mono); font-size: 11px;
+    color: var(--color-text-secondary); background: var(--color-bg-tertiary);
+    padding: 2px 6px; border-radius: 4px;
+}
 
 /* Settings */
 .settings-section { margin-bottom: 32px; }
