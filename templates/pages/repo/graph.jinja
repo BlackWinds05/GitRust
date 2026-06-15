@@ -2,8 +2,159 @@
 {% block title %}Network Graph — {{ repo.owner_name }}/{{ repo.name }}{% endblock %}
 {% block repo_content %}
 <h2>Network Graph</h2>
-<div class="empty-state">
-    <h3>Coming Soon</h3>
-    <p>The commit network graph visualization will be available in a future update.</p>
+<p class="text-small mb-4">{{ branches | length }} branches &middot; showing recent commits</p>
+
+<div id="graph-container" class="graph-wrapper"
+     data-repo-owner="{{ repo.owner_name }}"
+     data-repo-name="{{ repo.name }}">
+    <div class="graph-loading">Loading graph&hellip;</div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+const ctr = document.getElementById('graph-container');
+if(!ctr) return;
+var owner = encodeURIComponent(ctr.dataset.repoOwner);
+var repo = encodeURIComponent(ctr.dataset.repoName);
+var base = '/'+owner+'/'+repo;
+var RH = 34, DR = 4, CW = 18, PL = 8;
+var BADGE_COLORS = [
+    ['#1f6feb','rgba(31,111,235,.15)'],
+    ['#1a7f37','rgba(26,127,55,.15)'],
+    ['#9a6700','rgba(154,103,0,.15)'],
+    ['#cf222e','rgba(207,34,46,.15)'],
+    ['#8250df','rgba(130,80,223,.15)'],
+    ['#0550ae','rgba(5,80,174,.15)'],
+    ['#116329','rgba(17,99,41,.15)'],
+    ['#9a6700','rgba(154,103,0,.15)'],
+    ['#cf222e','rgba(207,34,46,.15)'],
+    ['#8250df','rgba(130,80,223,.15)'],
+    ['#0550ae','rgba(5,80,174,.15)'],
+    ['#bf4b8a','rgba(191,75,138,.15)']
+];
+
+fetch(base+'/-/graph/data')
+.then(function(r){if(!r.ok)throw Error(r.status);return r.json()})
+.then(function(d){
+    if(!d.nodes||!d.nodes.length){
+        ctr.innerHTML='<div class="empty-state"><h3>No commits yet</h3><p>Push your first commit to see the graph.</p></div>';
+        return;
+    }
+    build(d);
+})
+.catch(function(e){
+    console.error('Graph:',e);
+    ctr.innerHTML='<div class="empty-state"><h3>Failed to load</h3><p>Could not load graph data.</p></div>';
+});
+
+function build(d){
+    var nodes=d.nodes, edges=d.edges;
+    var maxCol=0;
+    nodes.forEach(function(n){if(n.col>maxCol)maxCol=n.col;});
+    var gw=PL+(maxCol+1)*CW+8;
+    var th=nodes.length*RH;
+    var bySha={};
+    nodes.forEach(function(n){bySha[n.sha]=n;});
+
+    // SVG
+    var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 '+gw+' '+th);
+    svg.setAttribute('width',gw); svg.setAttribute('height',th);
+    svg.classList.add('graph-svg');
+
+    // Edges
+    var eg=document.createElementNS('http://www.w3.org/2000/svg','g');
+    edges.forEach(function(e){
+        var fy=e.from_row*RH+RH/2, ty=e.to_row*RH+RH/2;
+        var fx=PL+e.from_col*CW, tx=PL+e.to_col*CW;
+        var my=(fy+ty)/2;
+        var d='M'+fx+' '+fy+' C'+fx+' '+my+' '+tx+' '+my+' '+tx+' '+ty;
+        var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+        p.setAttribute('d',d);
+        p.setAttribute('stroke','#30363d');
+        p.setAttribute('stroke-width','1.5');
+        p.setAttribute('fill','none');
+        eg.appendChild(p);
+    });
+    svg.appendChild(eg);
+
+    // Dots
+    var dg=document.createElementNS('http://www.w3.org/2000/svg','g');
+    nodes.forEach(function(n){
+        var cx=PL+n.col*CW, cy=n.row*RH+RH/2;
+        var bc=BADGE_COLORS[n.col % BADGE_COLORS.length];
+        var c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        c.setAttribute('cx',cx); c.setAttribute('cy',cy);
+        c.setAttribute('r',DR);
+        c.setAttribute('fill', bc[0]);
+        c.setAttribute('stroke','#0d1117');
+        c.setAttribute('stroke-width','1');
+        var t=document.createElementNS('http://www.w3.org/2000/svg','title');
+        t.textContent=n.short_sha+' — '+n.message;
+        c.appendChild(t);
+        c.addEventListener('click',function(){window.location.href=base+'/commit/'+n.sha;});
+        dg.appendChild(c);
+    });
+    svg.appendChild(dg);
+
+    // HTML commit list
+    var list=document.createElement('div');
+    list.classList.add('graph-commits');
+
+    nodes.forEach(function(n){
+        var row=document.createElement('div');
+        row.classList.add('graph-commit-row');
+        row.style.height=RH+'px';
+
+        // Message link
+        var msgWrap=document.createElement('span');
+        msgWrap.classList.add('graph-commit-msg');
+
+        var alink=document.createElement('a');
+        alink.href=base+'/commit/'+n.sha;
+        alink.title=n.message;
+        alink.textContent=n.message;
+        msgWrap.appendChild(alink);
+
+        // Branch badges — same lane color
+        if(n.branches.length){
+            var bc=BADGE_COLORS[n.col % BADGE_COLORS.length];
+            n.branches.forEach(function(b){
+                var badge=document.createElement('span');
+                badge.classList.add('graph-branch-badge');
+                badge.style.color=bc[0];
+                badge.style.background=bc[1];
+                badge.textContent=b;
+                msgWrap.appendChild(badge);
+            });
+        }
+
+        row.appendChild(msgWrap);
+
+        // Short SHA
+        var shaSpan=document.createElement('span');
+        shaSpan.classList.add('graph-commit-sha');
+        shaSpan.textContent=n.short_sha;
+        row.appendChild(shaSpan);
+
+        // Author + time
+        var meta=document.createElement('span');
+        meta.classList.add('graph-commit-meta');
+        meta.textContent=n.author_name+' · '+n.formatted_time;
+        row.appendChild(meta);
+
+        list.appendChild(row);
+    });
+
+    ctr.innerHTML='';
+    var box=document.createElement('div');
+    box.classList.add('graph-box');
+    box.appendChild(svg);
+    box.appendChild(list);
+    ctr.appendChild(box);
+}
+})();
+</script>
 {% endblock %}

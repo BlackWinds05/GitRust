@@ -1,9 +1,80 @@
 {% extends "pages/repo/layout.jinja" %}
 {% block title %}Statistics — {{ repo.owner_name }}/{{ repo.name }}{% endblock %}
 {% block repo_content %}
-<h2>Statistics</h2>
+<h2>Repository Statistics</h2>
+
+{% if stats.total_commits == 0 %}
 <div class="empty-state">
-    <h3>Coming Soon</h3>
-    <p>Repository statistics and charts will be available in a future update.</p>
+    <h3>No data yet</h3>
+    <p>Push commits to see repository statistics.</p>
 </div>
+{% else %}
+
+<div class="stats-summary">
+    <div class="stats-card">
+        <div class="stats-card-value">{{ stats.total_commits }}</div>
+        <div class="stats-card-label">Total Commits</div>
+    </div>
+    <div class="stats-card">
+        <div class="stats-card-value">{{ stats.total_branches }}</div>
+        <div class="stats-card-label">Branches</div>
+    </div>
+    <div class="stats-card">
+        <div class="stats-card-value">{{ stats.total_files }}</div>
+        <div class="stats-card-label">Tracked Files</div>
+    </div>
+</div>
+
+{% if stats.commit_activity | length > 0 %}
+<div class="stats-section">
+    <h3 class="stats-section-title">&#128200; Commit Activity</h3>
+    <p class="text-small mb-4">Commits per week &middot; last {{ stats.commit_activity | length }} weeks</p>
+    <div class="stats-bar-wrap">
+        {% for week in stats.commit_activity %}
+        <div class="stats-bar-col">
+            <div class="stats-bar-fill" style="height:{{ week.pct }}%" title="{{ week.week }}: {{ week.count }} commits"></div>
+            {% if loop.index0 % 3 == 0 %}
+            <span class="stats-bar-label">{{ week.week }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if stats.contributors | length > 0 %}
+<div class="stats-section">
+    <h3 class="stats-section-title">&#128101; Contributors</h3>
+    <div class="stats-contrib-list">
+        {% for c in stats.contributors %}
+        <div class="stats-contrib-row">
+            <span class="stats-contrib-name">{{ c.author_name }}</span>
+            <span class="stats-contrib-bar">
+                <span class="stats-contrib-fill" style="width:{{ c.pct }}%"></span>
+            </span>
+            <span class="stats-contrib-count">{{ c.commits }} commits</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if stats.languages | length > 0 %}
+<div class="stats-section">
+    <h3 class="stats-section-title">&#128196; Files by Type</h3>
+    <div class="stats-contrib-list">
+        {% for lang in stats.languages %}
+        <div class="stats-contrib-row">
+            <span class="stats-contrib-name lang">{{ lang.language }}</span>
+            <span class="stats-contrib-bar">
+                <span class="stats-contrib-fill lang-fill" style="width:{{ lang.pct }}%"></span>
+            </span>
+            <span class="stats-contrib-count">{{ lang.files }} files ({{ lang.pct }}%)</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
 {% endblock %}
