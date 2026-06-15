@@ -265,7 +265,7 @@ textarea.form-control { min-height: 100px; resize: vertical; }
 .stats-bar-wrap {
     display: flex; align-items: flex-end; gap: 3px; height: 150px; padding: 0 0 22px;
 }
-.stats-bar-col { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; position: relative; }
+.stats-bar-col { flex: 1; max-width: 32px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; position: relative; }
 .stats-bar-fill {
     width: 100%; border-radius: 3px 3px 0 0; min-height: 3px;
     background: linear-gradient(180deg, #58a6ff 0%, #1f6feb 100%);
