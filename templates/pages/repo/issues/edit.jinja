@@ -1,0 +1,50 @@
+{% extends "pages/repo/layout.jinja" %}
+{% block title %}Edit Issue #{{ issue.number }} — {{ repo.owner_name }}/{{ repo.name }}{% endblock %}
+{% block repo_content %}
+<h2>Edit Issue #{{ issue.number }}</h2>
+<form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/issues/{{ issue.number }}/edit">
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" class="form-control" value="{{ issue.title }}" required autofocus>
+    </div>
+    <div class="form-group">
+        <label for="description">Description (Markdown supported)</label>
+        <textarea id="description" name="description" class="form-control" style="min-height:200px;">{{ issue.description | default('') }}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="due_date">Due Date</label>
+        <input type="date" id="due_date" name="due_date" class="form-control" value="{% if issue.due_date %}{{ issue.due_date }}{% endif %}" style="max-width:200px;">
+    </div>
+    <div class="form-group">
+        <label>Labels</label>
+        {% for label in all_labels %}
+        <label style="display:inline-block;margin-right:8px;cursor:pointer;">
+            <input type="checkbox" name="label_ids" value="{{ label.id }}"
+                {% for l in issue.labels %}{% if l.id == label.id %}checked{% endif %}{% endfor %}>
+            <span class="label" style="background:{{ label.color }}33;border:1px solid {{ label.color }};color:{{ label.color }};">{{ label.name }}</span>
+        </label>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <label for="milestone_id">Milestone</label>
+        <select id="milestone_id" name="milestone_id" class="form-control" style="max-width:250px;">
+            <option value="">None</option>
+            {% for m in milestones %}
+            <option value="{{ m.id }}" {% if issue.milestone_title and m.title == issue.milestone_title %}selected{% endif %}>{{ m.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Assignees</label>
+        {% for member in members %}
+        <label style="display:inline-block;margin-right:8px;cursor:pointer;">
+            <input type="checkbox" name="assignee_ids" value="{{ member.user_id }}"
+                {% for a in issue.assignees %}{% if a.id == member.user_id %}checked{% endif %}{% endfor %}>
+            {{ member.display_name }} (@{{ member.username }})
+        </label>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a href="/{{ repo.owner_name }}/{{ repo.name }}/-/issues/{{ issue.number }}" class="btn btn-sm">Cancel</a>
+</form>
+{% endblock %}

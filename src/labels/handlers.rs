@@ -10,6 +10,7 @@ use tower_sessions::Session;
 use uuid::Uuid;
 
 use crate::error::{AppError, AppResult};
+use crate::helpers;
 use crate::labels::service;
 use crate::middleware::auth::current_user_from_session;
 use crate::repositories::service as repo_svc;
@@ -45,12 +46,26 @@ pub async fn create(
     Ok(Redirect::to(&format!("/{}/{}/-/labels", params.owner, params.repo)))
 }
 
-pub async fn delete(
+#[derive(Deserialize)]
+pub struct UpdateLabelForm { pub name: String, pub color: String, pub description: Option<String> }
+
+pub async fn update(
     State(state): State<Arc<AppState>>, session: Session,
-    Path((params, label_id)): Path<(LabelRepoParams, Uuid)>,
+    Path((owner, repo_name, label_id)): Path<(String, String, Uuid)>, Form(form): Form<UpdateLabelForm>,
 ) -> AppResult<Redirect> {
     let _current_user = current_user_from_session(&session).await.ok_or(AppError::Unauthorized)?;
-    let (repo, _) = repo_svc::resolve_repo(&state.pool, &params.owner, &params.repo).await?;
+    let (repo, _) = repo_svc::resolve_repo(&state.pool, &owner, &repo_name).await?;
+    service::update_label(&state.pool, repo.id, label_id, &form.name, &form.color, form.description.as_deref()).await?;
+    helpers::flash::set_flash(&session, "success", "Label updated.").await.ok();
+    Ok(Redirect::to(&format!("/{}/{}/-/labels", owner, repo_name)))
+}
+
+pub async fn delete(
+    State(state): State<Arc<AppState>>, session: Session,
+    Path((owner, repo_name, label_id)): Path<(String, String, Uuid)>,
+) -> AppResult<Redirect> {
+    let _current_user = current_user_from_session(&session).await.ok_or(AppError::Unauthorized)?;
+    let (repo, _) = repo_svc::resolve_repo(&state.pool, &owner, &repo_name).await?;
     service::delete_label(&state.pool, repo.id, label_id).await?;
-    Ok(Redirect::to(&format!("/{}/{}/-/labels", params.owner, params.repo)))
+    Ok(Redirect::to(&format!("/{}/{}/-/labels", owner, repo_name)))
 }

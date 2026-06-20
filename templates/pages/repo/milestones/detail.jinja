@@ -1,0 +1,64 @@
+{% extends "pages/repo/layout.jinja" %}
+{% block title %}{{ milestone.title }} · Milestone — {{ repo.owner_name }}/{{ repo.name }}{% endblock %}
+{% block repo_content %}
+<div class="flex-between mb-4">
+    <h2>&#127919; {{ milestone.title }}</h2>
+    <a href="/{{ repo.owner_name }}/{{ repo.name }}/-/milestones" class="btn btn-sm">Back to List</a>
+</div>
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
+    <span class="issue-status {{ milestone.state }}">{{ milestone.state }}</span>
+    {% if milestone.due_date %}<span class="text-small">&#128197; Due by <strong>{{ milestone.due_date }}</strong></span>{% endif %}
+</div>
+{% if milestone.description %}
+<div class="readme-container" style="margin-bottom:16px;">
+    <div class="readme-body">{{ milestone.description }}</div>
+</div>
+{% endif %}
+
+{% set total_issues = issues | length %}
+<div style="margin-bottom:16px;">
+    <h3>Progress</h3>
+    {% set closed_count = 0 %}
+    {% for i in issues %}{% if i.state == 'closed' %}{% set closed_count = closed_count + 1 %}{% endif %}{% endfor %}
+    <div style="background:var(--color-bg-tertiary);border-radius:4px;height:12px;overflow:hidden;margin-bottom:4px;">
+        {% if total_issues > 0 %}
+        <div style="background:var(--color-success);height:100%;width:{{ closed_count / total_issues * 100 }}%;transition:width .3s;"></div>
+        {% endif %}
+    </div>
+    <p class="text-small">{{ closed_count }} closed / {{ total_issues }} total</p>
+</div>
+
+<h3>Bound Issues ({{ total_issues }})</h3>
+{% if issues | length > 0 %}
+<ul class="issue-list">
+{% for i in issues %}
+<li class="issue-item">
+    <div class="issue-status {{ i.state }}">{% if i.state == 'open' %}&#9675;{% else %}&#10005;{% endif %}</div>
+    <div class="issue-body">
+        <div class="issue-title"><a href="/{{ repo.owner_name }}/{{ repo.name }}/-/issues/{{ i.number }}">{{ i.title }}</a></div>
+        <div class="issue-meta">#{{ i.number }} &middot; {{ i.created_at }}</div>
+    </div>
+    {% if current_user %}
+    <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/milestones/{{ milestone.id }}/unbind/{{ i.id }}" style="display:inline;">
+        <button type="submit" class="btn btn-sm">Unbind</button>
+    </form>
+    {% endif %}
+</li>
+{% endfor %}
+</ul>
+{% else %}
+<div class="empty-state"><p>No issues bound to this milestone yet.</p></div>
+{% endif %}
+
+{% if current_user and unbound_issues | length > 0 %}
+<div style="margin-top:16px;">
+    <h4>Add Issue</h4>
+    <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/milestones/{{ milestone.id }}/bind" style="display:flex;gap:8px;">
+        <select name="issue_id" class="form-control" style="max-width:300px;">
+            {% for i in unbound_issues %}<option value="{{ i.id }}">#{{ i.number }} {{ i.title }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="btn btn-sm btn-primary">Bind</button>
+    </form>
+</div>
+{% endif %}
+{% endblock %}

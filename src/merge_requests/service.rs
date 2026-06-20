@@ -51,6 +51,12 @@ pub async fn get_mr(pool: &PgPool, repo_id: Uuid, number: i32) -> AppResult<Merg
     .ok_or_else(|| AppError::NotFound("Merge request not found.".into()))
 }
 
+pub async fn update_merge_status(pool: &PgPool, mr_id: Uuid, status: &str) -> AppResult<()> {
+    sqlx::query("UPDATE merge_requests SET merge_status = $1, updated_at = now() WHERE id = $2")
+        .bind(status).bind(mr_id).execute(pool).await?;
+    Ok(())
+}
+
 pub async fn close_mr(pool: &PgPool, repo_id: Uuid, number: i32) -> AppResult<()> {
     sqlx::query("UPDATE merge_requests SET state = 'closed', closed_at = now(), updated_at = now() WHERE repository_id = $1 AND number = $2")
         .bind(repo_id).bind(number).execute(pool).await?;
@@ -66,4 +72,18 @@ pub async fn merge_mr(pool: &PgPool, repo_id: Uuid, number: i32, merged_by: Uuid
         "UPDATE merge_requests SET state = 'merged', merged_at = now(), merged_by = $1, updated_at = now() WHERE repository_id = $2 AND number = $3",
     ).bind(merged_by).bind(repo_id).bind(number).execute(pool).await?;
     Ok(())
+}
+
+pub fn check_conflict(
+    data_dir: &str, owner_id: &str, repo_name: &str,
+    source: &str, target: &str,
+) -> Result<bool, git2::Error> {
+    let path = crate::git_core::repo::repo_path(data_dir, owner_id, repo_name);
+    let repo = crate::git_core::repo::open_bare(&path)?;
+    let source_commit = repo.revparse_single(source)?.peel_to_commit()?;
+    let target_commit = repo.revparse_single(target)?.peel_to_commit()?;
+    let base_oid = repo.merge_base(source_commit.id(), target_commit.id())?;
+    let base_commit = repo.find_commit(base_oid)?;
+    let index = repo.merge_trees(&base_commit.tree()?, &source_commit.tree()?, &target_commit.tree()?, None)?;
+    Ok(index.has_conflicts())
 }

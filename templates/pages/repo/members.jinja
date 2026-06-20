@@ -2,33 +2,41 @@
 {% block title %}Members — {{ repo.owner_name }}/{{ repo.name }}{% endblock %}
 {% block repo_content %}
 <h2>Members</h2>
+{% if current_user %}
 <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/members/add" style="display:flex;gap:8px;align-items:end;margin-bottom:24px;">
+    <div class="form-group" style="margin-bottom:0;"><input type="text" name="username" class="form-control" placeholder="Username" required></div>
     <div class="form-group" style="margin-bottom:0;">
-        <input type="text" name="username" class="form-control" placeholder="Username" required>
-    </div>
-    <div class="form-group" style="margin-bottom:0;">
-        <select name="permission" class="form-control">
-            <option value="read">Read</option>
-            <option value="write">Write</option>
-            <option value="admin">Admin</option>
-        </select>
+        <select name="permission" class="form-control"><option value="read">Read</option><option value="write">Write</option><option value="admin">Admin</option></select>
     </div>
     <button type="submit" class="btn btn-sm btn-primary">Add</button>
 </form>
+{% endif %}
 {% if members | length > 0 %}
 <table class="file-table">
-    <thead><tr><th>User</th><th>Permission</th><th>Added</th></tr></thead>
+    <thead><tr><th>User</th><th>Permission</th><th>Added</th><th>Actions</th></tr></thead>
     <tbody>
     {% for m in members %}
     <tr>
-        <td><a href="/{{ m.username }}">{{ m.display_name }}</a> <span class="text-small">@{{ m.username }}</span></td>
-        <td><span class="label" style="background:var(--color-bg-tertiary);">{{ m.permission }}</span></td>
+        <td><span style="display:inline-flex;align-items:center;gap:8px;"><span class="commit-avatar" style="width:28px;height:28px;font-size:12px;">{{ m.display_name | first | upper }}</span><a href="/{{ m.username }}">{{ m.display_name }}</a> <span class="text-small">@{{ m.username }}</span></span></td>
+        <td>
+            <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/members/{{ m.user_id }}/update" style="display:inline;">
+                <select name="permission" class="form-control" style="width:auto;display:inline-block;font-size:12px;" onchange="this.form.submit()">
+                    <option value="read" {% if m.permission == 'read' %}selected{% endif %}>Read</option>
+                    <option value="write" {% if m.permission == 'write' %}selected{% endif %}>Write</option>
+                    <option value="admin" {% if m.permission == 'admin' %}selected{% endif %}>Admin</option>
+                </select>
+            </form>
+        </td>
         <td class="text-small">{{ m.added_at }}</td>
+        <td>
+            <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/members/{{ m.user_id }}/remove" style="display:inline;" data-confirm="Remove {{ m.display_name }} from this repository?">
+                <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+            </form>
+        </td>
     </tr>
-    {% endfor %}
-    </tbody>
+    {% endfor %}</tbody>
 </table>
 {% else %}
-<div class="empty-state"><h3>No members</h3></div>
+<div class="empty-state"><h3>No members</h3><p>Add collaborators using the form above.</p></div>
 {% endif %}
 {% endblock %}

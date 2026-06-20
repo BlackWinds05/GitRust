@@ -9,6 +9,11 @@ pub fn issue_routes() -> Router<Arc<AppState>> {
         .route("/{owner}/{repo}/-/issues/new", get(handlers::new_form))
         .route("/{owner}/{repo}/-/issues/new", post(handlers::create))
         .route("/{owner}/{repo}/-/issues/{number}", get(handlers::detail))
+        .route("/{owner}/{repo}/-/issues/{number}/edit", get(handlers::edit_form))
+        .route("/{owner}/{repo}/-/issues/{number}/edit", post(handlers::update))
+        .route("/{owner}/{repo}/-/issues/{number}/delete", post(handlers::delete))
         .route("/{owner}/{repo}/-/issues/{number}/close", post(handlers::close))
         .route("/{owner}/{repo}/-/issues/{number}/reopen", post(handlers::reopen))
+        .route("/{owner}/{repo}/-/issues/{number}/comment", post(handlers::comment_create))
+        .route("/{owner}/{repo}/-/issues/{number}/comment/{comment_id}/delete", post(handlers::comment_delete))
 }

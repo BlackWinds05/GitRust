@@ -69,12 +69,58 @@ impl AppError {
     }
 }
 
+fn error_html(status: u16, title: &str, message: &str) -> String {
+    format!(
+        r#"<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{} - GitRust</title>
+<link rel="stylesheet" href="/static/css/app.css?v=1">
+</head>
+<body style="background:var(--color-bg);color:var(--color-text-primary);font-family:var(--font-sans);">
+<div class="auth-page" style="min-height:60vh;">
+<div class="auth-card" style="text-align:center;max-width:500px;">
+<h1 style="font-size:48px;color:var(--color-text-secondary);margin:0;">{}</h1>
+<h1 style="font-size:24px;margin:8px 0;">{}</h1>
+<p style="color:var(--color-text-secondary);margin-bottom:20px;">{}</p>
+<a href="/" style="color:var(--color-text-link);">Back to Home</a>
+</div>
+</div>
+</body>
+</html>"#,
+        title,
+        match status {
+            400 => "&#9888;",
+            401 => "&#128274;",
+            403 => "&#128683;",
+            404 => "&#128269;",
+            409 => "&#9888;",
+            _ => "&#128165;",
+        },
+        title,
+        message
+    )
+}
+
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        let status = self.status();
-        let message = self.message();
-
-        (status, format!("{} - {}", status.as_u16(), message)).into_response()
+        let status_code = self.status();
+        let msg = self.message();
+        let title = match status_code.as_u16() {
+            400 => "Bad Request",
+            401 => "Unauthorized",
+            403 => "Forbidden",
+            404 => "Not Found",
+            409 => "Conflict",
+            _ => "Internal Server Error",
+        };
+        (
+            status_code,
+            axum::response::Html(error_html(status_code.as_u16(), title, &msg)),
+        )
+            .into_response()
     }
 }
 

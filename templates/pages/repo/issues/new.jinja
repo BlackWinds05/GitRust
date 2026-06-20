@@ -11,6 +11,37 @@
         <label for="description">Description (Markdown supported)</label>
         <textarea id="description" name="description" class="form-control" style="min-height:200px;"></textarea>
     </div>
+    <div class="form-group">
+        <label for="due_date">Due Date</label>
+        <input type="date" id="due_date" name="due_date" class="form-control" style="max-width:200px;">
+    </div>
+    <div class="form-group">
+        <label>Labels</label>
+        {% for label in all_labels %}
+        <label style="display:inline-block;margin-right:8px;cursor:pointer;">
+            <input type="checkbox" name="label_ids" value="{{ label.id }}">
+            <span class="label" style="background:{{ label.color }}33;border:1px solid {{ label.color }};color:{{ label.color }};">{{ label.name }}</span>
+        </label>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <label for="milestone_id">Milestone</label>
+        <select id="milestone_id" name="milestone_id" class="form-control" style="max-width:250px;">
+            <option value="">None</option>
+            {% for m in milestones %}
+            <option value="{{ m.id }}">{{ m.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Assignees</label>
+        {% for member in members %}
+        <label style="display:inline-block;margin-right:8px;cursor:pointer;">
+            <input type="checkbox" name="assignee_ids" value="{{ member.user_id }}">
+            {{ member.display_name }} (@{{ member.username }})
+        </label>
+        {% endfor %}
+    </div>
     <button type="submit" class="btn btn-primary">Submit Issue</button>
 </form>
 {% endblock %}

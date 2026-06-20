@@ -12,7 +12,10 @@
 </div>
 {% endif %}
 
+<div class="flex-between mb-4">
 <h2>{% if path %}{{ path }}{% else %}Files at {{ current_ref }}{% endif %}</h2>
+{% if current_user %}<a href="/{{ repo.owner_name }}/{{ repo.name }}/-/new-file{% if path %}?path={{ path }}{% endif %}" class="btn btn-sm btn-primary">New File</a>{% endif %}
+</div>
 
 {% if entries | length > 0 %}
 <table class="file-table">
@@ -38,6 +41,6 @@
     </tbody>
 </table>
 {% else %}
-<div class="empty-state"><h3>No files</h3></div>
+<div class="empty-state"><h3>&#128193; No files</h3><p>This directory is empty.</p>{% if current_user %}<a href="/{{ repo.owner_name }}/{{ repo.name }}/-/new-file{% if path %}?path={{ path }}{% endif %}" class="btn btn-primary btn-sm mt-2">New File</a>{% endif %}</div>
 {% endif %}
 {% endblock %}

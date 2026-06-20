@@ -1,16 +1,31 @@
 {% extends "pages/repo/layout.jinja" %}
 {% block title %}{{ page.title }} — Wiki — {{ repo.name }}{% endblock %}
 {% block repo_content %}
+{% if page %}
 <div class="flex-between mb-4">
     <h2>{{ page.title }}</h2>
-    <a href="/{{ repo.owner_name }}/{{ repo.name }}/-/wiki/{{ slug }}/edit" class="btn btn-sm">Edit</a>
+    <div style="display:flex;gap:6px;">
+        <a href="/{{ repo.owner_name }}/{{ repo.name }}/-/wiki/{{ slug }}/history" class="btn btn-sm">History</a>
+        {% if current_user %}
+        <a href="/{{ repo.owner_name }}/{{ repo.name }}/-/wiki/{{ slug }}/edit" class="btn btn-sm">Edit</a>
+        <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/wiki/{{ slug }}/delete" style="display:inline;" data-confirm="Delete this wiki page and all its history?">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </form>
+        {% endif %}
+    </div>
 </div>
-{% if page %}
-<p class="text-small">Last edited by {{ page.author_display_name }} &middot; {{ page.updated_at }}</p>
+<form method="get" action="/{{ repo.owner_name }}/{{ repo.name }}/-/wiki/search" class="mb-4">
+    <input type="text" name="q" class="form-control" placeholder="Search wiki..." style="max-width:300px;">
+</form>
+<p class="text-small">Last edited by {{ page.author_display_name }} &middot; v{{ page.revision }} &middot; {{ page.updated_at }}</p>
 <div class="readme-container" style="margin-top:16px;">
     <div class="readme-body">{{ content_html | safe }}</div>
 </div>
 {% else %}
-<div class="empty-state"><h3>Page not found</h3></div>
+<div class="empty-state">
+    <h3>&#128269; Page not found</h3>
+    <p>The page "{{ slug }}" does not exist.</p>
+    {% if current_user %}<a href="/{{ repo.owner_name }}/{{ repo.name }}/-/wiki/{{ slug }}/edit" class="btn btn-primary btn-sm mt-2">Create it</a>{% endif %}
+</div>
 {% endif %}
 {% endblock %}

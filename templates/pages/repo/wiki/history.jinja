@@ -1,0 +1,30 @@
+{% extends "pages/repo/layout.jinja" %}
+{% block title %}History: {{ slug }} — {{ repo.owner_name }}/{{ repo.name }}{% endblock %}
+{% block repo_content %}
+<h2>Page History: {{ slug }}</h2>
+<a href="/{{ repo.owner_name }}/{{ repo.name }}/-/wiki/{{ slug }}" class="btn btn-sm mb-4">Back to Page</a>
+{% if revisions | length > 0 %}
+<table class="file-table">
+<thead><tr><th>Revision</th><th>Title</th><th>Author</th><th>Date</th><th>Actions</th></tr></thead>
+<tbody>
+{% for r in revisions %}
+<tr>
+    <td>v{{ r.revision }}</td>
+    <td><a href="/{{ repo.owner_name }}/{{ repo.name }}/-/wiki/{{ slug }}">{{ r.title }}</a></td>
+    <td>{{ r.author_display_name }}</td>
+    <td>{{ r.updated_at }}</td>
+    <td>
+        {% if current_user %}
+        <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/wiki/{{ slug }}/rollback/{{ r.revision }}" style="display:inline;" data-confirm="Rollback to revision {{ r.revision }}? This creates a new revision.">
+            <button type="submit" class="btn btn-sm">Rollback</button>
+        </form>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<div class="empty-state"><p>No revisions found.</p></div>
+{% endif %}
+{% endblock %}

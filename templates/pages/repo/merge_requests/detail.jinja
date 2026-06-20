@@ -14,6 +14,11 @@
 {% if mr.description %}<div class="readme-container"><div class="readme-body">{{ mr.description }}</div></div>{% endif %}
 
 {% if mr.state == 'open' %}
+{% if mr.merge_status == 'conflict' or has_conflicts %}
+<div style="border:1px solid var(--color-danger);border-radius:6px;padding:12px 16px;margin-top:16px;background:#3a1a1a;color:var(--color-danger);">
+    <strong>&#9888; Warning:</strong> This merge request has conflicts that must be resolved before merging.
+</div>
+{% endif %}
 <div style="margin-top:16px;display:flex;gap:8px;">
     <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/merge_requests/{{ mr.number }}/merge" style="display:inline;">
         <button type="submit" class="btn btn-sm" style="background:var(--color-success);border-color:var(--color-success);color:#fff;">Merge</button>

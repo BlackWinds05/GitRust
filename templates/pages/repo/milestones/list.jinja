@@ -2,6 +2,7 @@
 {% block title %}Milestones — {{ repo.owner_name }}/{{ repo.name }}{% endblock %}
 {% block repo_content %}
 <h2>Milestones</h2>
+{% if current_user %}
 <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/milestones/new" style="margin-bottom:24px;padding:16px;background:var(--color-bg-secondary);border-radius:8px;border:1px solid var(--color-border);">
     <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;">
         <div class="form-group" style="margin-bottom:0;"><input type="text" name="title" class="form-control" placeholder="Title" required></div>
@@ -9,12 +10,13 @@
         <button type="submit" class="btn btn-sm btn-primary">Create</button>
     </div>
 </form>
+{% endif %}
 {% if milestones | length > 0 %}
 <div style="display:flex;flex-direction:column;gap:12px;">
 {% for m in milestones %}
-<div style="border:1px solid var(--color-border);border-radius:8px;padding:16px;">
+<div class="milestone-card" style="border:1px solid var(--color-border);border-radius:8px;padding:16px;transition:border-color .2s,box-shadow .2s;">
     <div style="display:flex;align-items:center;gap:12px;">
-        <h3 style="font-size:16px;margin:0;">{{ m.title }}</h3>
+        <h3 style="font-size:16px;margin:0;"><a href="/{{ repo.owner_name }}/{{ repo.name }}/-/milestones/{{ m.id }}">{{ m.title }}</a></h3>
         <span class="label" style="background:var(--color-bg-tertiary);font-size:12px;">{{ m.state }}</span>
     </div>
     {% if m.due_date %}<p class="text-small">Due: {{ m.due_date }}</p>{% endif %}
@@ -25,10 +27,21 @@
         {% endif %}
     </div>
     <p class="text-small">{{ m.closed_issues | default(0) }} closed / {{ m.open_issues | default(0) }} open</p>
+    {% if current_user %}
+    <div style="display:flex;gap:6px;margin-top:8px;">
+        <a href="/{{ repo.owner_name }}/{{ repo.name }}/-/milestones/{{ m.id }}/edit" class="btn btn-sm">Edit</a>
+        <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/milestones/{{ m.id }}/toggle" style="display:inline;">
+            <button type="submit" class="btn btn-sm">{% if m.state == 'open' %}Close{% else %}Reopen{% endif %}</button>
+        </form>
+        <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/milestones/{{ m.id }}/delete" style="display:inline;" data-confirm="Delete this milestone? Issues will be unlinked.">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </form>
+    </div>
+    {% endif %}
 </div>
 {% endfor %}
 </div>
 {% else %}
-<div class="empty-state"><h3>No milestones</h3></div>
+<div class="empty-state"><h3>&#127919; No milestones</h3><p>Create a milestone to track progress.</p>{% if current_user %}<p class="mt-2">Use the form above to create one.</p>{% endif %}</div>
 {% endif %}
 {% endblock %}
