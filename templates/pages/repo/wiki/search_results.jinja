@@ -1,0 +1,23 @@
+{% extends "pages/repo/layout.jinja" %}
+{% block title %}Search: {{ query }} — {{ repo.owner_name }}/{{ repo.name }}{% endblock %}
+{% block repo_content %}
+<h2>Wiki Search Results</h2>
+<form method="get" action="/{{ repo.owner_name }}/{{ repo.name }}/-/wiki/search" class="mb-4">
+    <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Search wiki pages..." style="max-width:400px;">
+</form>
+<p class="text-small mb-4">Found {{ results | length }} result(s) for "{{ query }}"</p>
+{% if results | length > 0 %}
+<ul class="issue-list">
+{% for r in results %}
+<li class="issue-item">
+    <div class="issue-body">
+        <div class="issue-title"><a href="/{{ repo.owner_name }}/{{ repo.name }}/-/wiki/{{ r.slug }}">{{ r.title }}</a></div>
+        <div class="issue-meta">v{{ r.revision }} by {{ r.author_display_name }} &middot; {{ r.updated_at }}</div>
+    </div>
+</li>
+{% endfor %}
+</ul>
+{% else %}
+<div class="empty-state"><h3>&#128269; No results</h3><p>Try a different keyword.</p></div>
+{% endif %}
+{% endblock %}

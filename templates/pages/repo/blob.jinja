@@ -22,5 +22,10 @@
     {% else %}
     <pre>{{ content }}</pre>
     {% endif %}
+<div style="margin-top:16px;">
+    {% if current_user %}
+    <a href="/{{ repo.owner_name }}/{{ repo.name }}/-/edit/{{ current_ref }}?path={{ file_path }}" class="btn btn-sm">Edit File</a>
+    {% endif %}
+</div>
 </div>
 {% endblock %}

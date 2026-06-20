@@ -58,4 +58,22 @@ impl AppState {
             config,
         })
     }
+
+    pub async fn render_error(&self, status: u16, message: &str) -> String {
+        let template_name = match status {
+            403 => "pages/errors/403.jinja",
+            404 => "pages/errors/404.jinja",
+            _ => "pages/errors/500.jinja",
+        };
+        self.templates
+            .render(
+                template_name,
+                minijinja::context! {
+                    current_user => Option::<crate::users::model::UserInfo>::None,
+                    error_message => message,
+                },
+            )
+            .await
+            .unwrap_or_else(|_| format!("{} - {}", status, message))
+    }
 }

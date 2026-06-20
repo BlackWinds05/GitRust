@@ -1,4 +1,4 @@
-// Placeholder — interactivity added in later phases
+// GitRust client-side interactivity
 document.addEventListener('DOMContentLoaded', () => {
     // Flash message auto-dismiss
     document.querySelectorAll('.flash-message').forEach(el => {
@@ -19,4 +19,23 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { console.error('captcha refresh failed', e); }
         });
     }
+
+    // Generic data-confirm handler for destructive actions
+    document.querySelectorAll('[data-confirm]').forEach(function(el) {
+        el.addEventListener('submit', function(e) {
+            if (!confirm(el.dataset.confirm)) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Inline edit toggle (for labels, milestones, etc.)
+    document.querySelectorAll('[data-toggle-edit]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const target = document.getElementById(btn.dataset.toggleEdit);
+            if (target) {
+                target.style.display = target.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+    });
 });

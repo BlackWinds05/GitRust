@@ -3,12 +3,27 @@
 {% block repo_content %}
 <div class="flex-between mb-4">
     <h2>Issues</h2>
+    {% if current_user %}
     <a href="/{{ repo.owner_name }}/{{ repo.name }}/-/issues/new" class="btn btn-primary btn-sm">New Issue</a>
+    {% endif %}
 </div>
 <div class="tabs mb-4">
     <a href="?state=open" class="{% if current_state == 'open' %}active{% endif %}">Open</a>
     <a href="?state=closed" class="{% if current_state == 'closed' %}active{% endif %}">Closed</a>
 </div>
+<form method="get" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+    <input type="hidden" name="state" value="{{ current_state }}">
+    <input type="text" name="search" class="form-control" placeholder="Search issues..." style="width:200px;" value="">
+    <select name="milestone" class="form-control" style="width:150px;">
+        <option value="">All milestones</option>
+        {% for m in all_milestones %}<option value="{{ m.title }}">{{ m.title }}</option>{% endfor %}
+    </select>
+    <select name="label" class="form-control" style="width:150px;">
+        <option value="">All labels</option>
+        {% for l in all_labels %}<option value="{{ l.name }}">{{ l.name }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm">Filter</button>
+</form>
 {% if issues | length > 0 %}
 <ul class="issue-list">
 {% for issue in issues %}
@@ -29,6 +44,6 @@
 </ul>
 {% include "partials/pagination.jinja" %}
 {% else %}
-<div class="empty-state"><h3>No issues</h3><p>No {{ current_state }} issues found.</p></div>
+<div class="empty-state"><h3>&#128196; No issues</h3><p>No {{ current_state }} issues found.</p>{% if current_user %}<a href="/{{ repo.owner_name }}/{{ repo.name }}/-/issues/new" class="btn btn-primary btn-sm mt-4">Create Issue</a>{% endif %}</div>
 {% endif %}
 {% endblock %}

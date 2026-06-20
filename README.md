@@ -55,32 +55,37 @@
 ## 快速开始
 
 ### 前置依赖
-- Rust 1.96+
-- PostgreSQL 16+
+- Rust ≥ 1.80
+- PostgreSQL ≥ 14
 - Git
 
 ### 安装运行
 
 ```bash
-# 克隆仓库
+# 1. 克隆仓库
 git clone https://github.com/BlackWinds05/GitRust.git
 cd GitRust
 
-# 配置环境变量
-cp .env.example .env
-# 编辑 .env 填写数据库连接等配置
+# 2. 安装数据库迁移工具
+cargo install sqlx-cli --no-default-features --features postgres
 
-# 创建数据库
+# 3. 创建数据库
 createdb gitrust
 
-# 运行迁移
-# (Phase 2+ 将在启动时自动创建 sessions 表)
+# 4. 配置环境变量
+cp .env.example .env
+# 编辑 .env → 填写 DATABASE_URL 等
 
-# 编译运行
+# 5. 执行数据库迁移
+sqlx migrate run
+
+# 6. 编译运行
 cargo run --release
 ```
 
 访问 http://localhost:3000
+
+> 详细故障排除请参阅 [RUNBOOK.md](RUNBOOK.md)
 
 ### 环境变量
 
@@ -142,6 +147,11 @@ src/
 | 013 | repository_members |
 | 014 | ssh_keys |
 | 015 | activity_events |
+| 016 | issue_comments |
+| 017 | issues.due_date（扩列） |
+| 018 | branch_protection_rules |
+| 020 | repositories 扩展列 |
+| 021 | repository_transfers |
 
 ## 开发分支
 

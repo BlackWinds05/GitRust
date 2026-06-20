@@ -6,5 +6,6 @@ pub fn member_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/{owner}/{repo}/-/members", get(handlers::list))
         .route("/{owner}/{repo}/-/members/add", post(handlers::add))
+        .route("/{owner}/{repo}/-/members/{user_id}/update", post(handlers::update_permission))
         .route("/{owner}/{repo}/-/members/{user_id}/remove", post(handlers::remove))
 }

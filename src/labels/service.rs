@@ -22,3 +22,9 @@ pub async fn delete_label(pool: &PgPool, repo_id: Uuid, label_id: Uuid) -> AppRe
         .bind(label_id).bind(repo_id).execute(pool).await?;
     Ok(())
 }
+
+pub async fn update_label(pool: &PgPool, repo_id: Uuid, label_id: Uuid, name: &str, color: &str, description: Option<&str>) -> AppResult<Label> {
+    sqlx::query_as::<_, Label>(
+        "UPDATE issue_labels SET name=$1, color=$2, description=$3 WHERE id=$4 AND repository_id=$5 RETURNING *"
+    ).bind(name).bind(color).bind(description).bind(label_id).bind(repo_id).fetch_one(pool).await.map_err(crate::error::AppError::from)
+}

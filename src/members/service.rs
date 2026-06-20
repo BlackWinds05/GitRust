@@ -31,3 +31,9 @@ pub async fn remove(pool: &PgPool, repo_id: Uuid, user_id: Uuid) -> AppResult<()
         .bind(repo_id).bind(user_id).execute(pool).await?;
     Ok(())
 }
+
+pub async fn update_permission(pool: &PgPool, repo_id: Uuid, user_id: Uuid, permission: &str) -> AppResult<()> {
+    sqlx::query("UPDATE repository_members SET permission=$1 WHERE repository_id=$2 AND user_id=$3")
+        .bind(permission).bind(repo_id).bind(user_id).execute(pool).await?;
+    Ok(())
+}
