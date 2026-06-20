@@ -1,40 +1,65 @@
 {% extends "pages/repo/layout.jinja" %}
 {% block title %}Labels — {{ repo.owner_name }}/{{ repo.name }}{% endblock %}
 {% block repo_content %}
-<h2>Labels</h2>
+
+<div class="page-header">
+    <h2>Labels</h2>
+    <p class="page-subtitle">Manage labels to categorize issues and merge requests.</p>
+</div>
+
 {% if current_user %}
-<div style="margin-bottom:24px;padding:16px;background:var(--color-bg-secondary);border-radius:8px;border:1px solid var(--color-border);">
-    <h3 style="margin-bottom:12px;font-size:14px;">Create Label</h3>
-    <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/labels" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;">
-        <div class="form-group" style="margin-bottom:0;"><input type="text" name="name" class="form-control" placeholder="Label name" required></div>
-        <div class="form-group" style="margin-bottom:0;"><input type="text" name="color" class="form-control" placeholder="#ff0000" style="width:100px;" required></div>
-        <div class="form-group" style="margin-bottom:0;"><input type="text" name="description" class="form-control" placeholder="Description (optional)" style="width:180px;"></div>
-        <button type="submit" class="btn btn-sm btn-primary">Create</button>
-    </form>
+<div class="card card-form">
+    <div class="card-hd">Create Label</div>
+    <div class="card-bd">
+        <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/labels">
+            <div class="form-row">
+                <div class="form-group" style="flex:1;min-width:140px;">
+                    <label for="ln">Name</label>
+                    <input type="text" id="ln" name="name" class="form-control" placeholder="bug" required>
+                </div>
+                <div class="form-group" style="width:110px;">
+                    <label for="lc">Color</label>
+                    <input type="text" id="lc" name="color" class="form-control" placeholder="#ff0000" required pattern="^#[0-9a-fA-F]{6}$">
+                </div>
+                <div class="form-group" style="flex:1;min-width:160px;">
+                    <label for="ld">Description</label>
+                    <input type="text" id="ld" name="description" class="form-control" placeholder="Optional">
+                </div>
+                <div class="form-group" style="align-self:flex-end;">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 {% endif %}
+
 {% if labels | length > 0 %}
-<div style="display:flex;flex-wrap:wrap;gap:8px;">
+<div class="label-grid">
 {% for label in labels %}
-<div style="background:{{ label.color }}22;border:1px solid {{ label.color }};padding:8px 16px;border-radius:8px;min-width:180px;">
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-        <span class="label" style="background:{{ label.color }};color:#fff;">{{ label.name }}</span>
+<div class="card label-card">
+    <div class="label-card-row">
+        <div class="label-card-info">
+            <span class="label-pill" style="background:{{ label.color }};">{{ label.name }}</span>
+            {% if label.description %}<span class="label-card-desc">{{ label.description }}</span>{% endif %}
+        </div>
         {% if current_user %}
-        <button type="button" class="btn btn-sm" style="font-size:10px;padding:1px 6px;" data-toggle-edit="label-edit-{{ label.id }}">Edit</button>
-        <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/labels/{{ label.id }}/delete" style="display:inline;" data-confirm="Delete label '{{ label.name }}'?">
-            <button type="submit" class="btn btn-sm" style="font-size:10px;padding:1px 6px;color:var(--color-danger);">X</button>
-        </form>
+        <div class="label-card-acts">
+            <button type="button" class="btn btn-sm btn-ghost" data-toggle-edit="ledit-{{ label.id }}">Edit</button>
+            <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/labels/{{ label.id }}/delete" style="display:inline;" data-confirm="Delete label &quot;{{ label.name }}&quot;?">
+                <button type="submit" class="btn btn-sm btn-ghost btn-danger-txt">Delete</button>
+            </form>
+        </div>
         {% endif %}
     </div>
-    {% if label.description %}<p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;">{{ label.description }}</p>{% endif %}
-    <div id="label-edit-{{ label.id }}" class="inline-edit-form">
-        <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/labels/{{ label.id }}/edit" style="display:flex;flex-direction:column;gap:4px;">
-            <input type="text" name="name" class="form-control" value="{{ label.name }}" required>
-            <input type="text" name="color" class="form-control" value="{{ label.color }}" required>
-            <input type="text" name="description" class="form-control" value="{{ label.description | default('') }}">
-            <div style="display:flex;gap:4px;">
-                <button type="submit" class="btn btn-sm btn-primary">Save</button>
-                <button type="button" class="btn btn-sm" onclick="document.getElementById('label-edit-{{ label.id }}').style.display='none'">Cancel</button>
+    <div id="ledit-{{ label.id }}" class="inline-edit" style="display:none;margin-top:10px;padding:10px;background:var(--color-bg);border:1px solid var(--color-border);border-radius:8px;">
+        <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/labels/{{ label.id }}/edit">
+            <div class="form-row" style="gap:6px;">
+                <input type="text" name="name" class="form-control" value="{{ label.name }}" required style="flex:1;font-size:13px;">
+                <input type="text" name="color" class="form-control" value="{{ label.color }}" required pattern="^#[0-9a-fA-F]{6}$" style="width:100px;font-size:13px;">
+                <input type="text" name="description" class="form-control" value="{{ label.description | default('') }}" style="flex:1;font-size:13px;">
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                <button type="button" class="btn btn-sm btn-ghost" onclick="document.getElementById('ledit-{{ label.id }}').style.display='none'">Cancel</button>
             </div>
         </form>
     </div>
@@ -42,6 +67,16 @@
 {% endfor %}
 </div>
 {% else %}
-<div class="empty-state"><h3>&#127991; No labels</h3><p>Labels help categorize issues and merge requests. Use the form above to create one.</p></div>
+<div class="empty-state">
+    <span class="empty-icon">&#127991;</span>
+    <h3>No labels yet</h3>
+    <p>Create labels to categorize issues and merge requests.</p>
+    {% if current_user %}
+    <p class="empty-hint">Use the form above to create your first one.</p>
+    {% else %}
+    <p class="empty-hint"><a href="/auth/login">Log in</a> to create labels.</p>
+    {% endif %}
+</div>
 {% endif %}
+
 {% endblock %}

@@ -419,5 +419,109 @@ textarea.form-control { min-height: 100px; resize: vertical; }
 .graph-zoom-controls button { padding: 4px 10px; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: 4px; color: var(--color-text-primary); cursor: pointer; font-size: 14px; }
 .graph-zoom-controls button:hover { background: var(--color-bg); }
 
-/* Inline edit form */
+/* ── Card system ── */
+.card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.12);
+    transition: border-color .2s, box-shadow .2s;
+}
+.card:hover { border-color: var(--color-accent); box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.card-hd {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border);
+}
+.card-bd { }
+
+/* Page header */
+.page-header { margin-bottom: 20px; }
+.page-subtitle { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
+
+/* Form row (horizontal) */
+.form-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+.form-row .form-group { margin-bottom: 0; }
+.form-row .form-group label { font-size: 12px; margin-bottom: 4px; }
+.form-row .form-control { font-size: 14px; padding: 7px 12px; }
+
+/* ── Labels grid ── */
+.label-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.label-card-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.label-card-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+.label-card-acts {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.label-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+}
+.label-card-desc {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ghost button */
+.btn-ghost {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--color-text-secondary);
+}
+.btn-ghost:hover { color: var(--color-text-primary); background: var(--color-bg-tertiary); border-color: var(--color-border); }
+.btn-danger-txt { color: var(--color-danger); }
+.btn-danger-txt:hover { color: #ff6b6b; background: rgba(248,81,73,.1); border-color: var(--color-danger); }
+
+/* Empty state */
+.empty-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+.empty-hint {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-top: 8px;
+}
+
+/* Inline edit */
+.inline-edit { }
+
+/* Inline edit form (legacy) */
 .inline-edit-form { display: none; padding: 12px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 8px; margin-top: 8px; }

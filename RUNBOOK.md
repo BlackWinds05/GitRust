@@ -250,6 +250,42 @@ cargo install cargo-watch
 cargo watch -x run
 ```
 
+## 已有数据库导入旧数据
+
+如果你的数据库已有表和数据（手动导入），不要直接跑 `sqlx migrate run`（会冲突）。
+
+### 方案一：只执行新迁移（推荐）
+
+1. 先导入旧 SQL 文件（Navicat / pgAdmin / psql）
+2. 标记旧迁移为已应用，跳过它们：
+
+```sql
+INSERT INTO _sqlx_migrations (version, description, installed_on, success, checksum, execution_time) VALUES
+('202606140001', 'create users', now(), true, '0', 0),
+('202606140002', 'create sessions', now(), true, '0', 0),
+-- ... 把 001-015 全部插入 ...
+('202606140015', 'create activity events', now(), true, '0', 0);
+```
+
+3. 再运行 `sqlx migrate run` → 只会执行新的 016-021
+
+### 方案二：重建数据库
+
+如果数据不重要：
+
+```sql
+DROP DATABASE gitrust;
+CREATE DATABASE gitrust;
+```
+
+然后 `sqlx migrate run` 执行全部 21 个迁移。
+
+### 方案三：纯数据导入
+
+项目根目录的 `import_data.sql` 是纯 INSERT 语句，不含建表语句。当表已被 sqlx 建好，直接导入这个文件即可填充旧数据（repository 行已适配新增的 `max_file_size_mb` 和 `enable_notifications` 列）。
+
+---
+
 ## 重置数据
 
 ```bash
