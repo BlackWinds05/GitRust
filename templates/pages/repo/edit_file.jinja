@@ -1,0 +1,21 @@
+{% extends "pages/repo/layout.jinja" %}
+{% block title %}Edit: {{ file_path }} — {{ repo.owner_name }}/{{ repo.name }}{% endblock %}
+{% block repo_content %}
+<h2>Editing: {{ file_path }}</h2>
+<form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/edit/{{ current_ref }}?path={{ file_path }}">
+    <div class="form-group">
+        <label for="commit_message">Commit message</label>
+        <input type="text" id="commit_message" name="commit_message" class="form-control" placeholder="Update {{ file_path }}" required>
+    </div>
+    <div class="form-group">
+        <label for="branch">Branch</label>
+        <input type="text" id="branch" name="branch" class="form-control" value="{{ current_ref }}" required style="max-width:300px;">
+    </div>
+    <div class="form-group">
+        <label for="content">File content</label>
+        <textarea id="content" name="content" class="form-control" style="min-height:400px;font-family:var(--font-mono);font-size:13px;line-height:1.5;" required>{{ content }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Commit Changes</button>
+    <a href="/{{ repo.owner_name }}/{{ repo.name }}/blob/{{ current_ref }}/{{ file_path }}" class="btn btn-sm">Cancel</a>
+</form>
+{% endblock %}

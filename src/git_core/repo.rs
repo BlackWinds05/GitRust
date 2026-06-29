@@ -37,3 +37,29 @@ pub fn branches(repo: &Repository) -> Result<Vec<String>, git2::Error> {
     }
     Ok(branch_names)
 }
+
+pub fn commit_file(
+    repo: &Repository,
+    branch: &str,
+    file_path: &str,
+    content: &[u8],
+    message: &str,
+    author_name: &str,
+    author_email: &str,
+) -> Result<git2::Oid, git2::Error> {
+    let refname = format!("refs/heads/{}", branch);
+    let obj = repo.revparse_single(branch)?;
+    let commit = obj.peel_to_commit()?;
+    let tree = commit.tree()?;
+
+    let blob_oid = repo.blob(content)?;
+    let mut tb = repo.treebuilder(Some(&tree))?;
+    tb.insert(file_path, blob_oid, 0o100644)?;
+    let new_tree_oid = tb.write()?;
+    let new_tree = repo.find_tree(new_tree_oid)?;
+
+    let sig = git2::Signature::now(author_name, author_email)?;
+    let commit_oid = repo.commit(Some(&refname), &sig, &sig, message, &new_tree, &[&commit])?;
+    repo.reference(&refname, commit_oid, true, "commit via web")?;
+    Ok(commit_oid)
+}

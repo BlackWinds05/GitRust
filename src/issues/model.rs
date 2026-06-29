@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -12,6 +12,7 @@ pub struct Issue {
     pub author_id: Uuid,
     pub state: String,
     pub milestone_id: Option<Uuid>,
+    pub due_date: Option<NaiveDate>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub closed_at: Option<DateTime<Utc>>,
@@ -40,11 +41,13 @@ pub struct IssueDetail {
     pub author_id: Uuid,
     pub author_username: String,
     pub author_display_name: String,
+    pub due_date: Option<NaiveDate>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub closed_at: Option<DateTime<Utc>>,
     pub labels: Vec<LabelInfo>,
     pub milestone_title: Option<String>,
+    pub assignees: Vec<AssigneeInfo>,
 }
 
 #[derive(Debug, Serialize, sqlx::FromRow)]
@@ -62,4 +65,32 @@ pub struct Label {
     pub color: String,
     pub description: Option<String>,
     pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AssigneeInfo {
+    pub id: Uuid,
+    pub username: String,
+    pub display_name: String,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct IssueComment {
+    pub id: Uuid,
+    pub issue_id: Uuid,
+    pub author_id: Uuid,
+    pub body: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CommentWithAuthor {
+    pub id: Uuid,
+    pub body: String,
+    pub body_html: String,
+    pub author_username: String,
+    pub author_display_name: String,
+    pub created_at: DateTime<Utc>,
+    pub author_id: Uuid,
 }

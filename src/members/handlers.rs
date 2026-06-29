@@ -45,12 +45,24 @@ pub async fn add(
     Ok(Redirect::to(&format!("/{}/{}/-/members", params.owner, params.repo)))
 }
 
-pub async fn remove(
+#[derive(Deserialize)] pub struct UpdatePermForm { pub permission: String }
+
+pub async fn update_permission(
     State(state): State<Arc<AppState>>, session: Session,
-    Path((params, user_id)): Path<(MemRepoParams, Uuid)>,
+    Path((owner, repo_name, user_id)): Path<(String, String, Uuid)>, Form(form): Form<UpdatePermForm>,
 ) -> AppResult<Redirect> {
     let _ = current_user_from_session(&session).await;
-    let (repo, _) = repo_svc::resolve_repo(&state.pool, &params.owner, &params.repo).await?;
+    let (repo, _) = repo_svc::resolve_repo(&state.pool, &owner, &repo_name).await?;
+    service::update_permission(&state.pool, repo.id, user_id, &form.permission).await?;
+    Ok(Redirect::to(&format!("/{}/{}/-/members", owner, repo_name)))
+}
+
+pub async fn remove(
+    State(state): State<Arc<AppState>>, session: Session,
+    Path((owner, repo_name, user_id)): Path<(String, String, Uuid)>,
+) -> AppResult<Redirect> {
+    let _ = current_user_from_session(&session).await;
+    let (repo, _) = repo_svc::resolve_repo(&state.pool, &owner, &repo_name).await?;
     service::remove(&state.pool, repo.id, user_id).await?;
-    Ok(Redirect::to(&format!("/{}/{}/-/members", params.owner, params.repo)))
+    Ok(Redirect::to(&format!("/{}/{}/-/members", owner, repo_name)))
 }

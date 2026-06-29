@@ -2,7 +2,7 @@
 {% block title %}{{ issue.title }} · Issue #{{ issue.number }}{% endblock %}
 {% block repo_content %}
 <h2>{{ issue.title }} <span style="color:var(--color-text-secondary);font-size:18px;">#{{ issue.number }}</span></h2>
-<div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
     <span class="issue-status {{ issue.state }}" style="font-size:13px;">
         {% if issue.state == 'open' %}&#9675; Open{% else %}&#10005; Closed{% endif %}
     </span>
@@ -11,12 +11,21 @@
         opened this issue &middot; {{ issue.created_at }}
     </span>
 </div>
+{% if issue.due_date %}
+<div class="text-small" style="margin-bottom:8px;">&#128197; Due by <strong>{{ issue.due_date }}</strong></div>
+{% endif %}
 {% if issue.labels | length > 0 %}
-<div style="margin-bottom:12px;">
+<div style="margin-bottom:8px;">
     {% for label in issue.labels %}
     <span class="label" style="background:{{ label.color }}33;border:1px solid {{ label.color }};color:{{ label.color }};">{{ label.name }}</span>
     {% endfor %}
 </div>
+{% endif %}
+{% if issue.milestone_title %}
+<div class="text-small" style="margin-bottom:8px;">&#127919; Milestone: <strong>{{ issue.milestone_title }}</strong></div>
+{% endif %}
+{% if issue.assignees | length > 0 %}
+<div class="text-small" style="margin-bottom:8px;">&#128101; Assignees: {% for a in issue.assignees %}<a href="/{{ a.username }}">@{{ a.username }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</div>
 {% endif %}
 {% if issue.description_html %}
 <div class="readme-container">
@@ -27,7 +36,7 @@
     <div class="readme-body"><pre>{{ issue.description }}</pre></div>
 </div>
 {% endif %}
-<div style="margin-top:16px;">
+<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
     {% if issue.state == 'open' %}
     <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/issues/{{ issue.number }}/close" style="display:inline;">
         <button type="submit" class="btn btn-sm">Close Issue</button>
@@ -37,5 +46,45 @@
         <button type="submit" class="btn btn-sm">Reopen Issue</button>
     </form>
     {% endif %}
+    {% if current_user %}
+    <a href="/{{ repo.owner_name }}/{{ repo.name }}/-/issues/{{ issue.number }}/edit" class="btn btn-sm">Edit</a>
+    <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/issues/{{ issue.number }}/delete" style="display:inline;" data-confirm="Delete issue #{{ issue.number }} permanently?">
+        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+    </form>
+    {% endif %}
 </div>
+
+<hr style="border-color:var(--color-border);margin:24px 0;">
+
+<h3>Comments {% if comments | length > 0 %}({{ comments | length }}){% endif %}</h3>
+{% for comment in comments %}
+<div class="commit-item" style="padding:12px 0;">
+    <div class="commit-avatar">{{ comment.author_display_name | first | upper }}</div>
+    <div class="commit-info">
+        <div class="commit-meta">
+            <a href="/{{ comment.author_username }}">{{ comment.author_display_name }}</a>
+            commented {{ comment.created_at }}
+            {% if current_user and current_user.id == comment.author_id %}
+            <form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/issues/{{ issue.number }}/comment/{{ comment.id }}/delete" style="display:inline;margin-left:8px;" data-confirm="Delete this comment?">
+                <button type="submit" class="btn btn-sm" style="font-size:11px;padding:1px 6px;">Delete</button>
+            </form>
+            {% endif %}
+        </div>
+        <div class="readme-body" style="margin-top:8px;">{{ comment.body_html | safe }}</div>
+    </div>
+</div>
+{% else %}
+<div class="empty-state"><p>No comments yet.</p></div>
+{% endfor %}
+
+{% if current_user %}
+<form method="post" action="/{{ repo.owner_name }}/{{ repo.name }}/-/issues/{{ issue.number }}/comment" style="margin-top:16px;">
+    <div class="form-group">
+        <textarea name="body" class="form-control" required placeholder="Write a comment... (Markdown supported)" style="min-height:100px;"></textarea>
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary">Comment</button>
+</form>
+{% else %}
+<p class="text-small"><a href="/auth/login">Log in</a> to comment.</p>
+{% endif %}
 {% endblock %}

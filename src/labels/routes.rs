@@ -7,5 +7,6 @@ pub fn label_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/{owner}/{repo}/-/labels", get(handlers::list))
         .route("/{owner}/{repo}/-/labels", post(handlers::create))
-        .route("/{owner}/{repo}/-/labels/{label_id}", axum::routing::delete(handlers::delete))
+        .route("/{owner}/{repo}/-/labels/{label_id}/edit", post(handlers::update))
+        .route("/{owner}/{repo}/-/labels/{label_id}/delete", post(handlers::delete))
 }
